@@ -165,6 +165,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
 
         @Override
         public void onFlipGesture() {
+            mMixpanel.track("$ab_gesture3");
             final Message message = mMessageThreadHandler.obtainMessage(MESSAGE_CONNECT_TO_EDITOR);
             mMessageThreadHandler.sendMessage(message);
         }
@@ -974,7 +975,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                         final JSONObject trackProps = new JSONObject();
                         trackProps.put("$experiment_id", experimentId);
                         trackProps.put("$variant_id", variantId);
-                        
+
                         variantObject.put(Integer.toString(experimentId), variantId);
 
                         mMixpanel.getPeople().merge("$experiments", variantObject);
@@ -995,7 +996,7 @@ public class ViewCrawler implements UpdatesFromMixpanel, TrackingDebug, ViewVisi
                     Log.wtf(LOGTAG, "Could not build JSON for reporting experiment start", e);
                 }
 
-                
+
             }
         }
 
