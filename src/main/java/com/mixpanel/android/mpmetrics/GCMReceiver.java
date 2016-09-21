@@ -2,6 +2,7 @@ package com.mixpanel.android.mpmetrics;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.support.v4.app.NotificationCompat;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -100,6 +101,8 @@ public class GCMReceiver extends BroadcastReceiver {
         } else if ("com.google.android.c2dm.intent.RECEIVE".equals(action)) {
             handleNotificationIntent(context, intent);
         }
+
+        setResultCode(Activity.RESULT_OK);
     }
 
     /*
