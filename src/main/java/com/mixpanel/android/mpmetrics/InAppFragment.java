@@ -229,25 +229,29 @@ public class InAppFragment extends Fragment {
             mHandler.removeCallbacks(mDisplayMini);
             UpdateDisplayState.releaseDisplayState(mDisplayStateId);
 
-            final FragmentManager fragmentManager = mParent.getFragmentManager();
-            FragmentTransaction transaction = fragmentManager.beginTransaction();
-            transaction.remove(this).commit();
+            if (!mParent.isDestroyed()){
+                final FragmentManager fragmentManager = mParent.getFragmentManager();
+                FragmentTransaction transaction = fragmentManager.beginTransaction();
+                transaction.remove(this).commit();
+            }
+
         }
 
         mCleanedUp = true;
     }
 
     private void remove() {
-        if (mParent != null && !mParent.isDestroyed() && !mCleanedUp) {
+        if (mParent != null && !mCleanedUp) {
             mHandler.removeCallbacks(mRemover);
             mHandler.removeCallbacks(mDisplayMini);
 
-            final FragmentManager fragmentManager = mParent.getFragmentManager();
-
-            // setCustomAnimations works on a per transaction level, so the animations set
-            // when this fragment was created do not apply
-            FragmentTransaction transaction = fragmentManager.beginTransaction();
-            transaction.setCustomAnimations(0, R.anim.com_mixpanel_android_slide_down).remove(this).commit();
+            if (!mParent.isDestroyed()){
+                final FragmentManager fragmentManager = mParent.getFragmentManager();
+                // setCustomAnimations works on a per transaction level, so the animations set
+                // when this fragment was created do not apply
+                FragmentTransaction transaction = fragmentManager.beginTransaction();
+                transaction.setCustomAnimations(0, R.anim.com_mixpanel_android_slide_down).remove(this).commit();
+            }
             UpdateDisplayState.releaseDisplayState(mDisplayStateId);
             mCleanedUp = true;
         }
