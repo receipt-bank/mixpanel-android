@@ -238,7 +238,7 @@ public class InAppFragment extends Fragment {
     }
 
     private void remove() {
-        if (mParent != null && !mCleanedUp) {
+        if (mParent != null && !mParent.isDestroyed() && !mCleanedUp) {
             mHandler.removeCallbacks(mRemover);
             mHandler.removeCallbacks(mDisplayMini);
 
