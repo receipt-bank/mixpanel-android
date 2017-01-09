@@ -1,14 +1,18 @@
-apply plugin: 'com.android.library'
-apply plugin: 'maven'
-apply plugin: 'signing'
-
 buildscript {
     repositories {
-        mavenCentral()
+        jcenter()
     }
     dependencies {
+        classpath "com.layer:gradle-git-repo-plugin:2.0.2"
         classpath 'com.android.tools.build:gradle:2.2.3'
     }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'git-repo'
+
+repositories {
+    github("receipt-bank", "onetap-android-maven", "master", "releases")
 }
 
 android {
@@ -25,7 +29,7 @@ android {
         consumerProguardFiles 'proguard.txt'
 
         lintOptions {
-            abortOnError true
+            abortOnError false
             warningsAsErrors true
             disable "UnusedResources"
         }
@@ -88,76 +92,36 @@ allprojects {
     }
 }
 
-def isReleaseVersion() {
-    return !version.endsWith("SNAPSHOT");
+gitPublishConfig {
+    org = "receipt-bank"
+    repo = "onetap-android-maven"
 }
 
-if (isReleaseVersion()) {
-    signing {
-        required { gradle.taskGraph.hasTask("uploadArchives") }
-        sign configurations.archives
+apply plugin: 'maven-publish'
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId "mixpanel"
+            version MixpanelVersion
+            groupId "io.onetap"
+            artifact file('build/outputs/aar/mixpanel-android-release.aar')
+            pom.withXml {
+                def dependenciesNode = asNode().appendNode('dependencies')
+
+                //Iterate over the compile dependencies (we don't want the test ones), adding a <dependency> node for each
+                configurations.compile.allDependencies.each {
+                    def dependencyNode = dependenciesNode.appendNode('dependency')
+                    dependencyNode.appendNode('groupId', it.group)
+                    dependencyNode.appendNode('artifactId', it.name)
+                    dependencyNode.appendNode('version', it.version)
+                }
+            }
+        }
     }
-}
-
-uploadArchives {
-    configuration = configurations.archives
-
-    repositories.mavenDeployer {
-        pom.project {
-            name project.name
-            packaging 'aar'
-            description 'An Android library for Mixpanel Analytics \n' +
-                    'http://mixpanel.com/android-analytics/'
-            url 'https://github.com/mixpanel/mixpanel-android'
-            scm {
-                url 'http://github.com/mixpanel/mixpanel-android'
-                connection 'scm:git:http://github.com/mixpanel/mixpanel-android'
-                developerConnection 'scm:git:git@github.com:mixpanel/mixpanel-android.git'
-            }
-            licenses {
-                license {
-                    name 'The Apache Software License, Version 2.0'
-                    url 'http://www.apache.org/license/LICENSE-2.0.txt'
-                    distribution 'repo'
-                }
-            }
-            developers {
-                developer {
-                    id 'mixpanel_dev'
-                    name 'Mixpanel Developers'
-                    email 'dev+android@mixpanel.com'
-                }
-            }
+    repositories {
+        maven {
+            url "file://${gitPublishConfig.home}/${gitPublishConfig.org}/${gitPublishConfig.repo}/releases"
         }
-
-        pom.whenConfigured { pom ->
-            pom.dependencies*.optional = true
-        }
-
-        if (isReleaseVersion() && project.hasProperty("sonatypeUsername")) {
-            /**
-             * In order to do nexus deploys, you'll need to setup a gradle.properties file in $HOME/.gradle
-             * with the following properties. You'll need the mixpanel.key file and then import it using GnuPG
-             * which will provide you with the keyId and the secring.gpg file
-             * signing.keyId=
-             * signing.password=
-             * signing.secretKeyRingFile=
-             *
-             * sonatypeRepo=https://oss.sonatype.org/service/local/staging/deploy/maven2/
-             * sonatypeUsername=
-             * sonatypePassword=
-             */
-
-            beforeDeployment {
-                MavenDeployment deployment -> signing.signPom(deployment)
-            }
-            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: sonatypeUsername, password: sonatypePassword)
-            }
-        } else {
-            repository(url:'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath)
-        }
-
     }
 }
 
