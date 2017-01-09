@@ -25,7 +25,13 @@ import com.mixpanel.android.viewcrawler.GestureTracker;
     @Override
     public void onActivityStarted(Activity activity) {
         if (android.os.Build.VERSION.SDK_INT >= MPConfig.UI_FEATURES_MIN_API && mConfig.getAutoShowMixpanelUpdates()) {
-            if (!activity.isTaskRoot()) {
+            /**
+             * Since Mixpanel uses root activity of the task, it can cause issues in OneTap Receipts.
+             * Root activity in OneTapReceipts is OnBoardingActivity which gets destroyed immediately if user is
+             * already logged in, therefore MainActivity is more appropriate candidate.
+             */
+
+            if (!activity.getClass().getName().equals("io.onetap.app.receipts.uk.activity.MainActivity")) {
                 return; // No checks, no nothing.
             }
 
@@ -36,7 +42,8 @@ import com.mixpanel.android.viewcrawler.GestureTracker;
     }
 
     @Override
-    public void onActivityCreated(Activity activity, Bundle savedInstanceState) { }
+    public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+    }
 
     @Override
     public void onActivityPaused(Activity activity) {
@@ -46,7 +53,7 @@ import com.mixpanel.android.viewcrawler.GestureTracker;
             mHandler.removeCallbacks(check);
         }
 
-        mHandler.postDelayed(check = new Runnable(){
+        mHandler.postDelayed(check = new Runnable() {
             @Override
             public void run() {
                 if (mIsForeground && mPaused) {
@@ -58,10 +65,12 @@ import com.mixpanel.android.viewcrawler.GestureTracker;
     }
 
     @Override
-    public void onActivityDestroyed(Activity activity) { }
+    public void onActivityDestroyed(Activity activity) {
+    }
 
     @Override
-    public void onActivitySaveInstanceState(Activity activity, Bundle outState) { }
+    public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+    }
 
     @Override
     public void onActivityResumed(Activity activity) {
@@ -83,7 +92,8 @@ import com.mixpanel.android.viewcrawler.GestureTracker;
     }
 
     @Override
-    public void onActivityStopped(Activity activity) { }
+    public void onActivityStopped(Activity activity) {
+    }
 
     private final MixpanelAPI mMpInstance;
     private final MPConfig mConfig;
