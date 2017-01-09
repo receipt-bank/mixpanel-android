@@ -13,31 +13,25 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.GestureDetector;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
-import android.view.View;
+import android.view.*;
 import android.view.View.OnTouchListener;
-import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.view.animation.ScaleAnimation;
 import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import com.mixpanel.android.R;
 
 /**
  * Attached to an Activity when you display a mini in-app notification.
- *
+ * <p>
  * Users of the library should not reference this class directly.
  */
 @TargetApi(MPConfig.UI_FEATURES_MIN_API)
@@ -120,7 +114,8 @@ public class InAppFragment extends Fragment {
             }
 
             @Override
-            public void onLongPress(MotionEvent e) { }
+            public void onLongPress(MotionEvent e) {
+            }
 
             @Override
             public boolean onScroll(MotionEvent e1, MotionEvent e2,
@@ -129,7 +124,8 @@ public class InAppFragment extends Fragment {
             }
 
             @Override
-            public void onShowPress(MotionEvent e) { }
+            public void onShowPress(MotionEvent e) {
+            }
 
             @Override
             public boolean onSingleTapUp(MotionEvent event) {
@@ -229,9 +225,11 @@ public class InAppFragment extends Fragment {
             mHandler.removeCallbacks(mDisplayMini);
             UpdateDisplayState.releaseDisplayState(mDisplayStateId);
 
-            final FragmentManager fragmentManager = mParent.getFragmentManager();
-            FragmentTransaction transaction = fragmentManager.beginTransaction();
-            transaction.remove(this).commit();
+            if (!mParent.isDestroyed()) {
+                final FragmentManager fragmentManager = mParent.getFragmentManager();
+                FragmentTransaction transaction = fragmentManager.beginTransaction();
+                transaction.remove(this).commit();
+            }
         }
 
         mCleanedUp = true;
@@ -242,21 +240,26 @@ public class InAppFragment extends Fragment {
             mHandler.removeCallbacks(mRemover);
             mHandler.removeCallbacks(mDisplayMini);
 
-            final FragmentManager fragmentManager = mParent.getFragmentManager();
+            if (!mParent.isDestroyed()) {
+                final FragmentManager fragmentManager = mParent.getFragmentManager();
 
-            // setCustomAnimations works on a per transaction level, so the animations set
-            // when this fragment was created do not apply
-            FragmentTransaction transaction = fragmentManager.beginTransaction();
-            transaction.setCustomAnimations(0, R.anim.com_mixpanel_android_slide_down).remove(this).commit();
+                // setCustomAnimations works on a per transaction level, so the animations set
+                // when this fragment was created do not apply
+                FragmentTransaction transaction = fragmentManager.beginTransaction();
+                transaction.setCustomAnimations(0, R.anim.com_mixpanel_android_slide_down).remove(this).commit();
+            }
+
             UpdateDisplayState.releaseDisplayState(mDisplayStateId);
             mCleanedUp = true;
         }
     }
 
     private class SineBounceInterpolator implements Interpolator {
-        public SineBounceInterpolator() { }
+        public SineBounceInterpolator() {
+        }
+
         public float getInterpolation(float t) {
-            return (float) -(Math.pow(Math.E, -8*t) * Math.cos(12*t)) + 1;
+            return (float) -(Math.pow(Math.E, -8 * t) * Math.cos(12 * t)) + 1;
         }
     }
 
@@ -277,7 +280,7 @@ public class InAppFragment extends Fragment {
             titleView.setTextColor(getResources().getColor(R.color.com_mixpanel_android_inapp_light_gray, null));
         }
 
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
             mInAppView.setBackgroundDrawable(viewBackground);
         } else {
             mInAppView.setBackground(viewBackground);
